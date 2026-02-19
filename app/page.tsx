@@ -1,6 +1,6 @@
 // app/page.tsx
 import { createClient } from "@supabase/supabase-js";
-import TierMaker from "@/components/tiers/TierMaker";
+import TierMaker from "@/component/tiers/TierMaker";
 
 type CharacterRow = {
   id: string | number;
