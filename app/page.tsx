@@ -2,6 +2,8 @@
 import { createClient } from "@supabase/supabase-js";
 import TierMaker from "@/component/tiers/TierMaker";
 
+export const dynamic = "force-dynamic";
+
 type CharacterRow = {
   id: string | number;
   name?: string | null;
