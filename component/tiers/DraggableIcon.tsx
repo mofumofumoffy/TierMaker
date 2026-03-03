@@ -41,13 +41,12 @@ export default function DraggableIcon({ id, character }: Props) {
       <img className="iconImg" src={character.iconUrl} alt={character.name} />
       <style jsx>{`
         .iconCard {
-          width: 56px;
-          height: 56px;
-          border-radius: 14px;
+          width: 48px;
+          height: 48px;
+          border-radius: 0;
           border: 1px solid var(--border);
           background: rgba(255, 255, 255, 0.05);
           overflow: hidden;
-          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
           display: grid;
           place-items: center;
         }

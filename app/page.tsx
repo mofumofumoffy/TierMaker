@@ -1,16 +1,30 @@
-// app/page.tsx
+﻿// app/page.tsx
 import { createClient } from "@supabase/supabase-js";
 import TierMaker from "@/component/tiers/TierMaker";
 
 type CharacterRow = {
   id: string | number;
   name?: string | null;
-  icon_path: string; // e.g. "characters/8000.jpg"
+  name_kana?: string | null;
+  element?: string | null;
+  obtain?: string | null;
+  gacha?: string | null;
+  number?: number | string | null;
+  icon_path: string;
 };
+
+export type CharacterElement = "火" | "水" | "木" | "光" | "闇";
+export type CharacterObtain = "ガチャ" | "その他";
+export type CharacterGacha = "限定" | "α" | "恒常" | "コラボ";
 
 export type CharacterForUI = {
   id: string;
   name: string;
+  nameKana: string;
+  element: CharacterElement | "";
+  obtain: CharacterObtain | "";
+  gachaType: CharacterGacha | "";
+  sortNumber: number;
   iconPath: string;
   iconUrl: string;
 };
@@ -27,51 +41,87 @@ function toStringId(id: string | number): string {
   return typeof id === "number" ? String(id) : id;
 }
 
+function toSortableNumber(v: number | string | null | undefined): number {
+  if (typeof v === "number") return Number.isFinite(v) ? v : Number.POSITIVE_INFINITY;
+  if (typeof v === "string") {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+  }
+  return Number.POSITIVE_INFINITY;
+}
+
+function normalizeElement(raw: string | null | undefined): CharacterElement | "" {
+  const v = (raw ?? "").trim().toLowerCase();
+  if (v === "火" || v === "fire") return "火";
+  if (v === "水" || v === "water") return "水";
+  if (v === "木" || v === "wood") return "木";
+  if (v === "光" || v === "light") return "光";
+  if (v === "闇" || v === "dark") return "闇";
+  return "";
+}
+
+function normalizeObtain(raw: string | null | undefined): CharacterObtain | "" {
+  const v = (raw ?? "").trim().toLowerCase();
+  if (v === "ガチャ" || v === "gacha") return "ガチャ";
+  if (v === "その他" || v === "other") return "その他";
+  return "";
+}
+
+function normalizeGacha(raw: string | null | undefined): CharacterGacha | "" {
+  const v = (raw ?? "").trim().toLowerCase();
+  if (v === "限定" || v === "limited") return "限定";
+  if (v === "α" || v === "alpha") return "α";
+  if (v === "恒常" || v === "normal") return "恒常";
+  if (v === "コラボ" || v === "collab") return "コラボ";
+  return "";
+}
+
 export default async function Page() {
-  // Supabase env (server-side fetch OK)
   const supabaseUrl = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
   const supabaseAnonKey = requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
 
-  // These can be overridden per your project
   const tableName = process.env.NEXT_PUBLIC_CHARACTERS_TABLE ?? "characters";
-  const bucketName = process.env.NEXT_PUBLIC_ICON_BUCKET ?? "icons";
+  const bucketName = process.env.NEXT_PUBLIC_ICON_BUCKET ?? "characters";
 
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: { persistSession: false },
   });
 
-  // Fetch characters
   const { data, error } = await supabase
     .from(tableName)
-    .select("id,name,icon_path")
+    .select("id,name,name_kana,element,obtain,gacha,number,icon_path")
+    .abortSignal(AbortSignal.timeout(8000))
+    .order("number", { ascending: true })
     .order("id", { ascending: true })
     .limit(5000);
 
   if (error) {
-    // You can customize error UI later
-    throw new Error(
-      `Failed to fetch characters from Supabase: ${error.message}`
-    );
+    console.error("Supabase error:", error);
+    return <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(error, null, 2)}</pre>;
   }
 
-  const rows = (data ?? []) as CharacterRow[];
+  const rows = ((data ?? []) as CharacterRow[]).slice().sort((a, b) => {
+    const an = toSortableNumber(a.number);
+    const bn = toSortableNumber(b.number);
+    if (an !== bn) return an - bn;
+    return toStringId(a.id).localeCompare(toStringId(b.id), "ja");
+  });
 
-  // Build icon URLs from icon_path (public bucket assumed)
   const characters: CharacterForUI[] = rows
     .filter((r) => typeof r.icon_path === "string" && r.icon_path.length > 0)
     .map((r) => {
       const iconPath = r.icon_path;
-      const { data: urlData } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(iconPath);
-
-      // If bucket is private, publicUrl may exist but won't load.
-      // (We'll handle private bucket later if needed.)
+      const { data: urlData } = supabase.storage.from(bucketName).getPublicUrl(iconPath);
       const iconUrl = urlData?.publicUrl ?? iconPath;
 
       return {
         id: toStringId(r.id),
         name: (r.name ?? "").trim() || toStringId(r.id),
+        nameKana: (r.name_kana ?? "").trim(),
+        element: normalizeElement(r.element),
+        obtain: normalizeObtain(r.obtain),
+        gachaType: normalizeGacha(r.gacha),
+        sortNumber: toSortableNumber(r.number),
         iconPath,
         iconUrl,
       };
@@ -79,13 +129,7 @@ export default async function Page() {
 
   return (
     <section className="stack">
-      <h1 className="title">キャラランクメーカー</h1>
-      <p className="muted">
-        下のアイコンをドラッグして、S/A/B/C に配置してください（ページを開き直すとリセットされます）
-      </p>
-
-      {/* TierMaker は次のステップで components 側に実装します */}
-      <TierMaker characters={characters} initialTiers={["S", "A", "B", "C"]} />
+      <TierMaker characters={characters} initialTiers={["S", "A", "B", "C", "D", "E"]} />
     </section>
   );
 }

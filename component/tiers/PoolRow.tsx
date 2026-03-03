@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import type { CharacterForUI } from "@/app/page";
@@ -16,11 +16,6 @@ export default function PoolRow({ itemIds, charactersById }: Props) {
 
   return (
     <div ref={setNodeRef} className="poolRow" data-over={isOver ? "1" : "0"}>
-      <div className="poolHeader">
-        <div className="poolTitle">アイコン一覧</div>
-        <div className="muted">ここからドラッグしてTierへ配置</div>
-      </div>
-
       <div className="poolItems">
         {itemIds.map((id) => {
           const c = charactersById.get(id);
@@ -31,7 +26,7 @@ export default function PoolRow({ itemIds, charactersById }: Props) {
 
       <style jsx>{`
         .poolRow {
-          padding: 12px;
+          padding: 6px 12px 12px;
           border: 1px dashed var(--border);
           border-radius: var(--radius);
           background: rgba(255, 255, 255, 0.03);
@@ -41,22 +36,10 @@ export default function PoolRow({ itemIds, charactersById }: Props) {
           background: rgba(255, 255, 255, 0.07);
         }
 
-        .poolHeader {
-          display: flex;
-          align-items: baseline;
-          justify-content: space-between;
-          gap: 12px;
-          margin-bottom: 10px;
-        }
-
-        .poolTitle {
-          font-weight: 800;
-        }
-
         .poolItems {
           display: flex;
           flex-wrap: wrap;
-          gap: 10px;
+          gap: 0;
           min-height: 72px;
         }
       `}</style>

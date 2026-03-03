@@ -54,9 +54,9 @@ export default function ExportButton({ targetRef }: Props) {
         }
 
         .btnPrimary {
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          background: rgba(255, 255, 255, 0.14);
-          color: var(--text);
+          border: 1px solid #1d4ed8;
+          background: #3b82f6;
+          color: #ffffff;
           padding: 10px 12px;
           border-radius: 14px;
           cursor: pointer;
@@ -69,7 +69,7 @@ export default function ExportButton({ targetRef }: Props) {
         }
 
         .btnPrimary:hover:not(:disabled) {
-          background: rgba(255, 255, 255, 0.18);
+          background: #2563eb;
         }
 
         .error {

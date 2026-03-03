@@ -1,4 +1,4 @@
-// app/layout.tsx
+﻿// app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -13,21 +13,10 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body>
-        <header className="appHeader">
-          <div className="container">
-            <div className="headerRow">
-              <div className="brand">Tier Maker</div>
-              <div className="muted">S/A/B/C にドラッグ＆ドロップ</div>
-            </div>
-          </div>
-        </header>
-
-        <main className="container appMain">{children}</main>
+        <main className="appMain">{children}</main>
 
         <footer className="appFooter">
-          <div className="container muted">
-            Built with Next.js + Supabase
-          </div>
+          <div className="container muted">Built with Next.js + Supabase</div>
         </footer>
       </body>
     </html>

@@ -1,17 +1,19 @@
-"use client";
+﻿"use client";
 
 import React from "react";
-import type { CharacterForUI } from "@/app/page";
+import type { CharacterElement, CharacterForUI, CharacterGacha, CharacterObtain } from "@/app/page";
 import TierBoard from "./TierBoard";
 import BoardControls from "./controls/BoardControls";
 
 import {
+  CollisionDetection,
   DndContext,
   DragEndEvent,
   DragOverEvent,
   DragStartEvent,
   PointerSensor,
   closestCenter,
+  pointerWithin,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -23,6 +25,8 @@ import {
 
 type TierId = string;
 type ContainerId = "pool" | TierId;
+type SortOrder = "asc" | "desc";
+type YearValue = number | "";
 
 type TierMeta = { id: TierId; name: string };
 
@@ -30,6 +34,24 @@ type Props = {
   characters: CharacterForUI[];
   initialTiers: TierId[]; // ["S","A","B","C"]
 };
+
+const ELEMENT_OPTIONS: CharacterElement[] = ["火", "水", "木", "光", "闇"];
+const OBTAIN_OPTIONS: CharacterObtain[] = ["ガチャ", "その他"];
+const GACHA_OPTIONS: CharacterGacha[] = ["限定", "α", "恒常", "コラボ"];
+const YEAR_OPTIONS: number[] = [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018];
+
+function implementationYearFromNumber(n: number): number | null {
+  if (n >= 8927) return 2026;
+  if (n >= 8196) return 2025;
+  if (n >= 7477) return 2024;
+  if (n >= 6736) return 2023;
+  if (n >= 5989) return 2022;
+  if (n >= 5255) return 2021;
+  if (n >= 4511) return 2020;
+  if (n >= 3811) return 2019;
+  if (n >= 3086) return 2018;
+  return null;
+}
 
 function buildInitialState(characters: CharacterForUI[], initialTiers: TierId[]) {
   const tierMeta: TierMeta[] = initialTiers.map((t) => ({ id: t, name: t }));
@@ -59,6 +81,20 @@ export default function TierMaker({ characters, initialTiers }: Props) {
 
   // Active dragging item id
   const [activeId, setActiveId] = React.useState<string | null>(null);
+  const [nameFilter, setNameFilter] = React.useState("");
+  const [yearFrom, setYearFrom] = React.useState<YearValue>("");
+  const [yearTo, setYearTo] = React.useState<YearValue>("");
+  const [sortOrder, setSortOrder] = React.useState<SortOrder>("desc");
+  const [isElementOrderEnabled, setIsElementOrderEnabled] = React.useState(true);
+  const [selectedElements, setSelectedElements] = React.useState<Set<CharacterElement>>(
+    () => new Set(ELEMENT_OPTIONS)
+  );
+  const [selectedObtains, setSelectedObtains] = React.useState<Set<CharacterObtain>>(
+    () => new Set<CharacterObtain>(["ガチャ"])
+  );
+  const [selectedGachas, setSelectedGachas] = React.useState<Set<CharacterGacha>>(
+    () => new Set<CharacterGacha>(["限定"])
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -72,9 +108,91 @@ export default function TierMaker({ characters, initialTiers }: Props) {
     return m;
   }, [characters]);
 
+  const normalizedFilter = nameFilter.trim().toLowerCase();
+
+  const visibleCharacterIds = React.useMemo(() => {
+    const isAllElementsSelected = ELEMENT_OPTIONS.every((el) => selectedElements.has(el));
+    const isAllObtainsSelected = OBTAIN_OPTIONS.every((o) => selectedObtains.has(o));
+    const isAllGachasSelected = GACHA_OPTIONS.every((g) => selectedGachas.has(g));
+    const isYearUnselected = yearFrom === "" && yearTo === "";
+    if (
+      !normalizedFilter &&
+      isAllElementsSelected &&
+      isAllObtainsSelected &&
+      isAllGachasSelected &&
+      isYearUnselected
+    ) {
+      return null;
+    }
+
+    const ids = new Set<string>();
+    for (const c of characters) {
+      const name = c.name.trim().toLowerCase();
+      const nameKana = c.nameKana.trim().toLowerCase();
+      const isNameMatched =
+        !normalizedFilter || name.includes(normalizedFilter) || nameKana.includes(normalizedFilter);
+      const isElementMatched = !!c.element && selectedElements.has(c.element);
+      const isObtainMatched = !!c.obtain && selectedObtains.has(c.obtain);
+      const isGachaMatched =
+        c.obtain !== "ガチャ" || (!!c.gachaType && selectedGachas.has(c.gachaType));
+      const implYear = implementationYearFromNumber(c.sortNumber);
+      const minYear = yearFrom === "" ? Number.NEGATIVE_INFINITY : yearFrom;
+      const maxYear = yearTo === "" ? Number.POSITIVE_INFINITY : yearTo;
+      const isYearMatched =
+        (yearFrom === "" && yearTo === "") ||
+        (implYear !== null && implYear >= minYear && implYear <= maxYear);
+
+      if (isNameMatched && isElementMatched && isObtainMatched && isGachaMatched && isYearMatched) {
+        ids.add(c.id);
+      }
+    }
+    return ids;
+  }, [characters, normalizedFilter, selectedElements, selectedObtains, selectedGachas, yearFrom, yearTo]);
+
+  function toggleElementFilter(element: CharacterElement) {
+    setSelectedElements((prev) => {
+      const next = new Set(prev);
+      if (next.has(element)) {
+        next.delete(element);
+      } else {
+        next.add(element);
+      }
+      return next;
+    });
+  }
+
+  function toggleObtainFilter(obtain: CharacterObtain) {
+    setSelectedObtains((prev) => {
+      const next = new Set(prev);
+      if (next.has(obtain)) {
+        next.delete(obtain);
+      } else {
+        next.add(obtain);
+      }
+      return next;
+    });
+  }
+
+  function toggleGachaFilter(gacha: CharacterGacha) {
+    setSelectedGachas((prev) => {
+      const next = new Set(prev);
+      if (next.has(gacha)) {
+        next.delete(gacha);
+      } else {
+        next.add(gacha);
+      }
+      return next;
+    });
+  }
+
   const containerIds: ContainerId[] = React.useMemo(() => {
     return ["pool", ...tierMeta.map((t) => t.id)];
   }, [tierMeta]);
+
+  const collisionDetection: CollisionDetection = React.useCallback((args) => {
+    const byPointer = pointerWithin(args);
+    return byPointer.length > 0 ? byPointer : closestCenter(args);
+  }, []);
 
   function resetBoard() {
     setActiveId(null);
@@ -164,14 +282,15 @@ export default function TierMaker({ characters, initialTiers }: Props) {
   }
 
   const activeCharacter = activeId ? characterById.get(activeId) ?? null : null;
-
   return (
     <div className="stack">
-      <BoardControls onReset={resetBoard} exportTargetRef={boardRef} />
+      <div className="controlsBand">
+        <BoardControls onReset={resetBoard} exportTargetRef={boardRef} />
+      </div>
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={collisionDetection}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
@@ -182,10 +301,41 @@ export default function TierMaker({ characters, initialTiers }: Props) {
           tierMeta={tierMeta}
           containers={containers}
           charactersById={characterById}
+          visibleCharacterIds={visibleCharacterIds}
+          nameFilter={nameFilter}
+          onNameFilterChange={setNameFilter}
+          yearFrom={yearFrom}
+          yearTo={yearTo}
+          yearOptions={YEAR_OPTIONS}
+          onYearFromChange={setYearFrom}
+          onYearToChange={setYearTo}
+          sortOrder={sortOrder}
+          onSortOrderChange={setSortOrder}
+          isElementOrderEnabled={isElementOrderEnabled}
+          onElementOrderChange={setIsElementOrderEnabled}
+          selectedElements={selectedElements}
+          onToggleElement={toggleElementFilter}
+          selectedObtains={selectedObtains}
+          onToggleObtain={toggleObtainFilter}
+          selectedGachas={selectedGachas}
+          onToggleGacha={toggleGachaFilter}
           onRenameTier={renameTier}
           activeCharacter={activeCharacter}
         />
       </DndContext>
+
+      <style jsx>{`
+        .controlsBand {
+          position: sticky;
+          top: 0;
+          z-index: 30;
+          background: #ffffff;
+          border-bottom: 1px solid #d1d5db;
+          padding: 8px 10px;
+          margin: 0;
+        }
+
+      `}</style>
     </div>
   );
 }

@@ -21,9 +21,7 @@ body {
 
 body {
   margin: 0;
-  background: radial-gradient(1200px 800px at 10% 0%, #1b2a5a 0%, transparent 55%),
-    radial-gradient(900px 600px at 90% 10%, #2a195a 0%, transparent 55%),
-    var(--bg);
+  background: #f3f4f6;
   color: var(--text);
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
     "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
@@ -63,7 +61,7 @@ a {
 }
 
 .appMain {
-  padding: 22px 0 42px;
+  padding: 0 0 24px;
 }
 
 .appFooter {
@@ -75,6 +73,10 @@ a {
   margin: 0;
   font-size: 28px;
   letter-spacing: 0.2px;
+}
+
+.pageTitle {
+  color: #111111;
 }
 
 .muted {
@@ -159,14 +161,317 @@ a {
 
 .uiInput {
   width: 100%;
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border);
+  color: #111111;
+  background: #ffffff;
+  border: 1px solid #9ca3af;
   border-radius: 12px;
   padding: 9px 10px;
   outline: none;
 }
 
 .uiInput:focus {
-  background: rgba(255, 255, 255, 0.06);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+}
+
+.uiInput::placeholder {
+  color: #6b7280;
+}
+
+/* Fallback styles when styled-jsx is not injected */
+.controlsBand {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: #ffffff;
+  border-bottom: 1px solid #d1d5db;
+  padding: 8px 10px;
+  margin: 0;
+}
+
+.controlsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.left,
+.right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brandText {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111111;
+  letter-spacing: 0.2px;
+}
+
+.btn {
+  border: 1px solid #1f2937;
+  background: #f3f4f6;
+  color: #111827;
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn:hover {
+  background: #e5e7eb;
+}
+
+.tierBoardInner {
+  display: grid;
+  gap: 0;
+}
+
+.tierRow {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  width: 100%;
+  justify-self: stretch;
+  margin: 0;
+  gap: 12px;
+  align-items: start;
+  padding: 6px 10px;
+  border: 1px solid #000000;
+  border-radius: 0;
+  background: var(--panel);
+}
+
+.tierLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 12px;
+  padding: 2px;
+}
+
+.tierNameInput {
+  width: 100%;
+  font-size: 16px;
+  font-weight: 800;
+  color: #111111;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 4px 6px;
+  outline: none;
+  text-align: center;
+}
+
+.tierNameInput:focus {
+  border-color: rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.tierItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  min-height: 48px;
+  align-content: flex-start;
+}
+
+.poolRow {
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.poolHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.poolTitle {
+  font-weight: 800;
+}
+
+.poolItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  min-height: 72px;
+}
+
+.filterRow {
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filterIconBtn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #9ca3af;
+  background: #ffffff;
+  color: #111111;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+}
+
+.filterIconBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.elementFilterPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.filterColumns {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px 20px;
+  align-items: start;
+}
+
+.filterLeftCol,
+.filterRightCol {
+  display: grid;
+  gap: 8px;
+}
+
+.labelRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filterLabel {
+  min-width: 56px;
+  color: #111111;
+  font-weight: 700;
+}
+
+.inlineBtns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sortRow {
+  width: auto;
+  margin-left: 64px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.yearRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.yearSelect {
+  min-width: 110px;
+  border: 1px solid #9ca3af;
+  background: #ffffff;
+  color: #111111;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-weight: 600;
+}
+
+.yearSep {
+  color: #374151;
+  font-weight: 700;
+}
+
+.sortBtn {
+  min-width: 64px;
+  border: 1px solid #9ca3af;
+  background: #ffffff;
+  color: #111111;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.sortBtn[data-selected="1"] {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+
+.obtainRow,
+.gachaRow {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.gachaRow {
+  width: auto;
+  margin-left: 64px;
+}
+
+.labelRow .obtainRow,
+.labelRow .yearRow {
+  width: auto;
+}
+
+.obtainBtn,
+.gachaBtn {
+  min-width: 64px;
+  border: 1px solid #9ca3af;
+  background: #ffffff;
+  color: #111111;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.obtainBtn[data-selected="1"],
+.gachaBtn[data-selected="1"] {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+
+.elementBtn {
+  min-width: 44px;
+  border: 1px solid #9ca3af;
+  background: #ffffff;
+  color: #111111;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.elementBtn[data-selected="1"] {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+
+.betweenTiersAndFilter {
+  height: 6px;
+}
+
+.betweenFilterAndPool {
+  height: 1px;
 }
