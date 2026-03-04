@@ -60,7 +60,7 @@ export default function TierRow({
           grid-template-columns: 80px 1fr;
           margin: 0;
           gap: 12px;
-          align-items: start;
+          align-items: stretch;
           padding: 6px 10px;
           border: 1px solid #000000;
           border-radius: 0;
@@ -74,9 +74,12 @@ export default function TierRow({
         .tierLeft {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 10px;
-          border-radius: 12px;
-          padding: 2px;
+          border-radius: 0;
+          height: 100%;
+          min-height: 100%;
+          padding: 0;
         }
 
         .tierNameInput {
