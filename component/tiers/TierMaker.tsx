@@ -113,6 +113,24 @@ export default function TierMaker({ characters, initialTiers }: Props) {
   const [selectedOtherCategories, setSelectedOtherCategories] = React.useState<
     Set<CharacterOtherCategory>
   >(() => new Set<CharacterOtherCategory>(["黎絶"]));
+  const [appliedNameFilter, setAppliedNameFilter] = React.useState("");
+  const [appliedYearFrom, setAppliedYearFrom] = React.useState<YearValue>("");
+  const [appliedYearTo, setAppliedYearTo] = React.useState<YearValue>("");
+  const [appliedSortOrder, setAppliedSortOrder] = React.useState<SortOrder>("desc");
+  const [appliedIsElementOrderEnabled, setAppliedIsElementOrderEnabled] = React.useState(true);
+  const [appliedIsAllElementsMode, setAppliedIsAllElementsMode] = React.useState(true);
+  const [appliedSelectedElements, setAppliedSelectedElements] = React.useState<Set<CharacterElement>>(
+    () => new Set<CharacterElement>()
+  );
+  const [appliedSelectedObtains, setAppliedSelectedObtains] = React.useState<Set<CharacterObtain>>(
+    () => new Set<CharacterObtain>(["ガチャ"])
+  );
+  const [appliedSelectedGachas, setAppliedSelectedGachas] = React.useState<Set<CharacterGacha>>(
+    () => new Set<CharacterGacha>(["限定"])
+  );
+  const [appliedSelectedOtherCategories, setAppliedSelectedOtherCategories] = React.useState<
+    Set<CharacterOtherCategory>
+  >(() => new Set<CharacterOtherCategory>(["黎絶"]));
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -126,16 +144,16 @@ export default function TierMaker({ characters, initialTiers }: Props) {
     return m;
   }, [characters]);
 
-  const normalizedFilter = nameFilter.trim().toLowerCase();
+  const normalizedFilter = appliedNameFilter.trim().toLowerCase();
 
   const visibleCharacterIds = React.useMemo(() => {
-    const isAllElementsSelected = isAllElementsMode;
-    const isAllObtainsSelected = OBTAIN_OPTIONS.every((o) => selectedObtains.has(o));
-    const isAllGachasSelected = GACHA_OPTIONS.every((g) => selectedGachas.has(g));
+    const isAllElementsSelected = appliedIsAllElementsMode;
+    const isAllObtainsSelected = OBTAIN_OPTIONS.every((o) => appliedSelectedObtains.has(o));
+    const isAllGachasSelected = GACHA_OPTIONS.every((g) => appliedSelectedGachas.has(g));
     const isAllOtherCategoriesSelected = OTHER_CATEGORY_OPTIONS.every((o) =>
-      selectedOtherCategories.has(o)
+      appliedSelectedOtherCategories.has(o)
     );
-    const isYearUnselected = yearFrom === "" && yearTo === "";
+    const isYearUnselected = appliedYearFrom === "" && appliedYearTo === "";
     if (
       !normalizedFilter &&
       isAllElementsSelected &&
@@ -153,19 +171,20 @@ export default function TierMaker({ characters, initialTiers }: Props) {
       const nameKana = c.nameKana.trim().toLowerCase();
       const isNameMatched =
         !normalizedFilter || name.includes(normalizedFilter) || nameKana.includes(normalizedFilter);
-      const isElementMatched = isAllElementsMode || (!!c.element && selectedElements.has(c.element));
-      const isObtainMatched = !!c.obtain && selectedObtains.has(c.obtain);
+      const isElementMatched =
+        appliedIsAllElementsMode || (!!c.element && appliedSelectedElements.has(c.element));
+      const isObtainMatched = !!c.obtain && appliedSelectedObtains.has(c.obtain);
       const isSubtypeMatched =
         c.obtain === "ガチャ"
-          ? !!c.gachaType && selectedGachas.has(c.gachaType)
+          ? !!c.gachaType && appliedSelectedGachas.has(c.gachaType)
           : c.obtain === "その他"
-            ? !!c.otherCategory && selectedOtherCategories.has(c.otherCategory)
+            ? !!c.otherCategory && appliedSelectedOtherCategories.has(c.otherCategory)
             : true;
       const implYear = implementationYearFromNumber(c.sortNumber);
-      const minYear = yearFrom === "" ? Number.NEGATIVE_INFINITY : yearFrom;
-      const maxYear = yearTo === "" ? Number.POSITIVE_INFINITY : yearTo;
+      const minYear = appliedYearFrom === "" ? Number.NEGATIVE_INFINITY : appliedYearFrom;
+      const maxYear = appliedYearTo === "" ? Number.POSITIVE_INFINITY : appliedYearTo;
       const isYearMatched =
-        (yearFrom === "" && yearTo === "") ||
+        (appliedYearFrom === "" && appliedYearTo === "") ||
         (implYear !== null && implYear >= minYear && implYear <= maxYear);
 
       if (isNameMatched && isElementMatched && isObtainMatched && isSubtypeMatched && isYearMatched) {
@@ -176,13 +195,13 @@ export default function TierMaker({ characters, initialTiers }: Props) {
   }, [
     characters,
     normalizedFilter,
-    selectedElements,
-    isAllElementsMode,
-    selectedObtains,
-    selectedGachas,
-    selectedOtherCategories,
-    yearFrom,
-    yearTo,
+    appliedSelectedElements,
+    appliedIsAllElementsMode,
+    appliedSelectedObtains,
+    appliedSelectedGachas,
+    appliedSelectedOtherCategories,
+    appliedYearFrom,
+    appliedYearTo,
   ]);
 
   function toggleElementFilter(element: CharacterElement) {
@@ -240,6 +259,19 @@ export default function TierMaker({ characters, initialTiers }: Props) {
       }
       return next;
     });
+  }
+
+  function applyFilters() {
+    setAppliedNameFilter(nameFilter);
+    setAppliedYearFrom(yearFrom);
+    setAppliedYearTo(yearTo);
+    setAppliedSortOrder(sortOrder);
+    setAppliedIsElementOrderEnabled(isElementOrderEnabled);
+    setAppliedIsAllElementsMode(isAllElementsMode);
+    setAppliedSelectedElements(new Set(selectedElements));
+    setAppliedSelectedObtains(new Set(selectedObtains));
+    setAppliedSelectedGachas(new Set(selectedGachas));
+    setAppliedSelectedOtherCategories(new Set(selectedOtherCategories));
   }
 
   const containerIds: ContainerId[] = React.useMemo(() => {
@@ -370,6 +402,8 @@ export default function TierMaker({ characters, initialTiers }: Props) {
           onSortOrderChange={setSortOrder}
           isElementOrderEnabled={isElementOrderEnabled}
           onElementOrderChange={setIsElementOrderEnabled}
+          effectiveSortOrder={appliedSortOrder}
+          effectiveElementOrderEnabled={appliedIsElementOrderEnabled}
           selectedElements={selectedElements}
           onToggleElement={toggleElementFilter}
           isAllElementsMode={isAllElementsMode}
@@ -380,6 +414,7 @@ export default function TierMaker({ characters, initialTiers }: Props) {
           onToggleGacha={toggleGachaFilter}
           selectedOtherCategories={selectedOtherCategories}
           onToggleOtherCategory={toggleOtherCategoryFilter}
+          onApplyFilters={applyFilters}
           onRenameTier={renameTier}
           activeCharacter={activeCharacter}
         />

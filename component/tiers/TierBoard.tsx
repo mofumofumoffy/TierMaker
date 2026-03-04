@@ -39,6 +39,8 @@ type Props = {
   onSortOrderChange: (next: "asc" | "desc") => void;
   isElementOrderEnabled: boolean;
   onElementOrderChange: (next: boolean) => void;
+  effectiveSortOrder: "asc" | "desc";
+  effectiveElementOrderEnabled: boolean;
   isAllElementsMode: boolean;
   onSelectAllElements: () => void;
   selectedElements: Set<CharacterElement>;
@@ -49,6 +51,7 @@ type Props = {
   onToggleGacha: (gacha: CharacterGacha) => void;
   selectedOtherCategories: Set<CharacterOtherCategory>;
   onToggleOtherCategory: (category: CharacterOtherCategory) => void;
+  onApplyFilters: () => void;
   onRenameTier: (tierId: string, nextName: string) => void;
   activeCharacter: CharacterForUI | null;
 };
@@ -70,6 +73,8 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
     onSortOrderChange,
     isElementOrderEnabled,
     onElementOrderChange,
+    effectiveSortOrder,
+    effectiveElementOrderEnabled,
     isAllElementsMode,
     onSelectAllElements,
     selectedElements,
@@ -80,6 +85,7 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
     onToggleGacha,
     selectedOtherCategories,
     onToggleOtherCategory,
+    onApplyFilters,
     onRenameTier,
     activeCharacter,
   },
@@ -122,21 +128,21 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
     items.sort((a, b) => {
       const ca = charactersById.get(a);
       const cb = charactersById.get(b);
-      if (isElementOrderEnabled) {
+      if (effectiveElementOrderEnabled) {
         const ea = ca?.element ? (elementIndex.get(ca.element) ?? Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
         const eb = cb?.element ? (elementIndex.get(cb.element) ?? Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY;
         if (ea !== eb) return ea - eb;
       }
       const na = ca?.sortNumber ?? Number.POSITIVE_INFINITY;
       const nb = cb?.sortNumber ?? Number.POSITIVE_INFINITY;
-      if (na !== nb) return sortOrder === "asc" ? na - nb : nb - na;
+      if (na !== nb) return effectiveSortOrder === "asc" ? na - nb : nb - na;
       const an = ca?.name ?? "";
       const bn = cb?.name ?? "";
       return an.localeCompare(bn, "ja");
     });
 
     return items;
-  }, [filterPoolItems, containers, charactersById, sortOrder, isElementOrderEnabled]);
+  }, [filterPoolItems, containers, charactersById, effectiveSortOrder, effectiveElementOrderEnabled]);
   const estimatedRowHeight = 78;
   const tiersHeightPx = Math.max(estimatedRowHeight * tierMeta.length, 420);
   const tiersWidthPx = Math.round((tiersHeightPx * 16) / 9);
@@ -192,6 +198,9 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
             <svg viewBox="0 0 24 24" aria-hidden focusable="false">
               <path d="M3 5h18l-7 8v6l-4-2v-4L3 5z" fill="currentColor" />
             </svg>
+          </button>
+          <button type="button" className="searchBtn" onClick={onApplyFilters}>
+            検索
           </button>
         </div>
 
@@ -369,7 +378,11 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
         <div className="betweenFilterAndPool" />
 
         <SortableContext id="pool" items={sortedPoolItems} strategy={rectSortingStrategy}>
-          <PoolRow itemIds={sortedPoolItems} charactersById={charactersById} />
+          <PoolRow
+            itemIds={sortedPoolItems}
+            charactersById={charactersById}
+            groupByElement={effectiveElementOrderEnabled}
+          />
         </SortableContext>
       </div>
 
@@ -419,6 +432,23 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
 
         .filterIconBtn:hover {
           background: #f3f4f6;
+        }
+
+        .searchBtn {
+          height: 36px;
+          min-width: 72px;
+          border: 1px solid #1d4ed8;
+          background: #3b82f6;
+          color: #ffffff;
+          border-radius: 8px;
+          padding: 0 12px;
+          font-weight: 700;
+          white-space: nowrap;
+          cursor: pointer;
+        }
+
+        .searchBtn:hover {
+          background: #2563eb;
         }
 
         .elementFilterPanel {
