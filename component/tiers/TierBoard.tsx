@@ -179,33 +179,34 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
           })}
         </div>
 
-        <div className="betweenTiersAndFilter" />
+        <div className="filterArea" style={tiersFrameStyle}>
+          <div className="betweenTiersAndFilter" />
 
-        <div className="filterRow">
-          <Input
-            placeholder="キャラクターを検索"
-            value={nameFilter}
-            onChange={(e) => onNameFilterChange(e.target.value)}
-            aria-label="キャラクターを検索"
-          />
+          <div className="filterRow">
+            <Input
+              placeholder="キャラクターを検索"
+              value={nameFilter}
+              onChange={(e) => onNameFilterChange(e.target.value)}
+              aria-label="キャラクターを検索"
+            />
 
-          <button
-            type="button"
-            className="filterIconBtn"
-            aria-label="属性フィルター"
-            onClick={() => setIsElementFilterOpen((prev) => !prev)}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden focusable="false">
-              <path d="M3 5h18l-7 8v6l-4-2v-4L3 5z" fill="currentColor" />
-            </svg>
-          </button>
-          <button type="button" className="searchBtn" onClick={onApplyFilters}>
-            検索
-          </button>
-        </div>
+            <button
+              type="button"
+              className="filterIconBtn"
+              aria-label="属性フィルター"
+              onClick={() => setIsElementFilterOpen((prev) => !prev)}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden focusable="false">
+                <path d="M3 5h18l-7 8v6l-4-2v-4L3 5z" fill="currentColor" />
+              </svg>
+            </button>
+            <button type="button" className="searchBtn" onClick={onApplyFilters}>
+              検索
+            </button>
+          </div>
 
-        {isElementFilterOpen ? (
-          <div className="elementFilterPanel">
+          {isElementFilterOpen ? (
+            <div className="elementFilterPanel">
             <div className="filterColumns">
               <div className="filterLeftCol">
                 <div className="labelRow">
@@ -372,10 +373,11 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
                 </div>
               </div>
             </div>
-          </div>
-        ) : null}
+            </div>
+          ) : null}
 
-        <div className="betweenFilterAndPool" />
+          <div className="betweenFilterAndPool" />
+        </div>
 
         <SortableContext id="pool" items={sortedPoolItems} strategy={rectSortingStrategy}>
           <PoolRow
@@ -400,12 +402,17 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
           gap: 0;
         }
 
+        .filterArea {
+          max-width: 100%;
+        }
+
         .tiersFrame {
           border: 1px solid #d1d5db;
           background: #ffffff;
         }
 
         .filterRow {
+          width: 100%;
           max-width: 420px;
           display: flex;
           align-items: center;
@@ -456,6 +463,8 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
           flex-direction: column;
           gap: 10px;
           margin-top: 8px;
+          max-width: 100%;
+          overflow-x: hidden;
         }
 
         .filterColumns {
@@ -615,6 +624,21 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
 
         .betweenFilterAndPool {
           height: 0;
+        }
+
+        @media (max-width: 768px) {
+          .filterColumns {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+
+          .gachaRow,
+          .otherCategoryRow {
+            margin-left: 0;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+          }
         }
       `}</style>
     </div>

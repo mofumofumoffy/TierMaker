@@ -330,7 +330,12 @@ a {
   pointer-events: none;
 }
 
+.filterArea {
+  max-width: 100%;
+}
+
 .filterRow {
+  width: 100%;
   max-width: 420px;
   display: flex;
   align-items: center;
@@ -360,6 +365,8 @@ a {
   flex-direction: column;
   gap: 10px;
   margin-top: 8px;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .filterColumns {
@@ -398,7 +405,7 @@ a {
 
 .sortRow {
   width: auto;
-  margin-left: 64px;
+  margin-left: 0;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -504,4 +511,19 @@ a {
 
 .betweenFilterAndPool {
   height: 1px;
+}
+
+@media (max-width: 768px) {
+  .filterColumns {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .gachaRow,
+  .otherCategoryRow {
+    margin-left: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
