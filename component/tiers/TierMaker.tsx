@@ -427,7 +427,7 @@ export default function TierMaker({ characters, initialTiers }: Props) {
           z-index: 30;
           background: #ffffff;
           border-bottom: 1px solid #d1d5db;
-          padding: 8px 10px;
+          padding: 4px 8px;
           margin: 0;
         }
 

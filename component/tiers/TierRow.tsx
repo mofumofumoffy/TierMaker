@@ -61,7 +61,7 @@ export default function TierRow({
           margin: 0;
           gap: 12px;
           align-items: stretch;
-          padding: 6px 10px;
+          padding: 2px 10px;
           border: 1px solid #000000;
           border-radius: 0;
           background: var(--panel);

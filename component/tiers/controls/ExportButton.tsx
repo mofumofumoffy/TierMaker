@@ -49,7 +49,7 @@ export default function ExportButton({ targetRef }: Props) {
       <style jsx>{`
         .exportWrap {
           display: grid;
-          gap: 6px;
+          gap: 4px;
           justify-items: end;
         }
 
@@ -57,10 +57,12 @@ export default function ExportButton({ targetRef }: Props) {
           border: 1px solid #1d4ed8;
           background: #3b82f6;
           color: #ffffff;
-          padding: 10px 12px;
-          border-radius: 14px;
+          padding: 6px 10px;
+          border-radius: 10px;
           cursor: pointer;
           font-weight: 800;
+          font-size: 13px;
+          line-height: 1.15;
         }
 
         .btnPrimary:disabled {

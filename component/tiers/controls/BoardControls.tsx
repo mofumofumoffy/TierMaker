@@ -92,7 +92,7 @@ export default function BoardControls({ onReset, exportTargetRef }: Props) {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 12px;
+          gap: 8px;
           flex-wrap: wrap;
         }
 
@@ -100,7 +100,7 @@ export default function BoardControls({ onReset, exportTargetRef }: Props) {
         .right {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 8px;
         }
 
         .menuWrap {
@@ -108,17 +108,17 @@ export default function BoardControls({ onReset, exportTargetRef }: Props) {
         }
 
         .menuBtn {
-          width: 36px;
-          height: 36px;
+          width: 32px;
+          height: 32px;
           border: 1px solid #9ca3af;
           background: #ffffff;
-          border-radius: 8px;
+          border-radius: 7px;
           cursor: pointer;
           display: inline-flex;
           flex-direction: column;
           justify-content: center;
-          gap: 4px;
-          padding: 0 9px;
+          gap: 3px;
+          padding: 0 8px;
         }
 
         .menuBtn span {
@@ -199,20 +199,23 @@ export default function BoardControls({ onReset, exportTargetRef }: Props) {
         }
 
         .brandText {
-          font-size: 18px;
+          font-size: 15px;
           font-weight: 800;
           color: #111111;
           letter-spacing: 0.2px;
+          line-height: 1.1;
         }
 
         .btn {
           border: 1px solid #1f2937;
           background: #f3f4f6;
           color: #111827;
-          padding: 10px 12px;
-          border-radius: 14px;
+          padding: 6px 10px;
+          border-radius: 10px;
           cursor: pointer;
           font-weight: 700;
+          font-size: 13px;
+          line-height: 1.15;
         }
 
         .btn:hover {

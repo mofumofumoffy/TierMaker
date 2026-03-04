@@ -15,6 +15,8 @@ type Props = {
 export default function PoolRow({ itemIds, charactersById, groupByElement = false }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: "pool" });
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
+  const bottomScrollRef = React.useRef<HTMLDivElement | null>(null);
+  const syncingRef = React.useRef<"main" | "bottom" | null>(null);
   const [scrollLeft, setScrollLeft] = React.useState(0);
   const [viewportWidth, setViewportWidth] = React.useState(0);
   const ICON_SIZE = 48;
@@ -65,45 +67,81 @@ export default function PoolRow({ itemIds, charactersById, groupByElement = fals
   }, [groupByElement]);
 
   const onPoolScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    setScrollLeft(e.currentTarget.scrollLeft);
+    const next = e.currentTarget.scrollLeft;
+    setScrollLeft(next);
+    if (syncingRef.current === "bottom") return;
+    syncingRef.current = "main";
+    if (bottomScrollRef.current && bottomScrollRef.current.scrollLeft !== next) {
+      bottomScrollRef.current.scrollLeft = next;
+    }
+    requestAnimationFrame(() => {
+      if (syncingRef.current === "main") syncingRef.current = null;
+    });
   }, []);
+
+  const onBottomScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const next = e.currentTarget.scrollLeft;
+    if (syncingRef.current === "main") return;
+    syncingRef.current = "bottom";
+    if (scrollRef.current && scrollRef.current.scrollLeft !== next) {
+      scrollRef.current.scrollLeft = next;
+    }
+    setScrollLeft(next);
+    requestAnimationFrame(() => {
+      if (syncingRef.current === "bottom") syncingRef.current = null;
+    });
+  }, []);
+
+  const maxRowWidth = React.useMemo(() => {
+    if (!groupByElement || groupedRows.length === 0) return 0;
+    return groupedRows.reduce((max, row) => Math.max(max, row.length * ICON_SIZE), 0);
+  }, [groupByElement, groupedRows]);
 
   return (
     <div ref={setNodeRef} className="poolRow" data-over={isOver ? "1" : "0"}>
       {groupByElement ? (
-        <div ref={scrollRef} className="poolElementRows" onScroll={onPoolScroll}>
-          <div className="poolElementRowsInner">
-            {groupedRows.map((row, rowIdx) => {
-              const startIndex = Math.max(0, Math.floor((scrollLeft - OVERSCAN_PX) / ICON_SIZE));
-              const endIndex = Math.min(
-                row.length,
-                Math.ceil((scrollLeft + viewportWidth + OVERSCAN_PX) / ICON_SIZE)
-              );
-              const visibleIds = row.slice(startIndex, endIndex);
+        <>
+          <div ref={scrollRef} className="poolElementRows" onScroll={onPoolScroll}>
+            <div className="poolElementRowsInner">
+              {groupedRows.map((row, rowIdx) => {
+                const startIndex = Math.max(0, Math.floor((scrollLeft - OVERSCAN_PX) / ICON_SIZE));
+                const endIndex = Math.min(
+                  row.length,
+                  Math.ceil((scrollLeft + viewportWidth + OVERSCAN_PX) / ICON_SIZE)
+                );
+                const visibleIds = row.slice(startIndex, endIndex);
 
-              return (
-                <div key={`row-${rowIdx}`} className="elementRow">
-                  <div className="elementItems" style={{ width: row.length * ICON_SIZE }}>
-                    {visibleIds.map((id, visibleIndex) => {
-                      const absoluteIndex = startIndex + visibleIndex;
-                      const c = charactersById.get(id);
-                      if (!c) return null;
-                      return (
-                        <div
-                          key={id}
-                          className="virtualItem"
-                          style={{ left: absoluteIndex * ICON_SIZE }}
-                        >
-                          <DraggableIcon id={id} character={c} />
-                        </div>
-                      );
-                    })}
+                return (
+                  <div key={`row-${rowIdx}`} className="elementRow">
+                    <div className="elementItems" style={{ width: row.length * ICON_SIZE }}>
+                      {visibleIds.map((id, visibleIndex) => {
+                        const absoluteIndex = startIndex + visibleIndex;
+                        const c = charactersById.get(id);
+                        if (!c) return null;
+                        return (
+                          <div
+                            key={id}
+                            className="virtualItem"
+                            style={{ left: absoluteIndex * ICON_SIZE }}
+                          >
+                            <DraggableIcon id={id} character={c} />
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+
+          <div ref={bottomScrollRef} className="poolBottomScrollbar" onScroll={onBottomScroll}>
+            <div
+              className="poolBottomScrollbarInner"
+              style={{ width: Math.max(maxRowWidth, viewportWidth) }}
+            />
+          </div>
+        </>
       ) : (
         <div className="poolItems">{renderItems}</div>
       )}
@@ -147,6 +185,20 @@ export default function PoolRow({ itemIds, charactersById, groupByElement = fals
           gap: 4px;
           width: max-content;
           min-width: 100%;
+        }
+
+        .poolBottomScrollbar {
+          margin-top: 4px;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: auto;
+          overflow-y: hidden;
+          -webkit-overflow-scrolling: touch;
+          height: 14px;
+        }
+
+        .poolBottomScrollbarInner {
+          height: 1px;
         }
 
         .elementRow {
