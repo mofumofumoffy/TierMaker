@@ -25,7 +25,7 @@ export default function ExportButton({ targetRef }: Props) {
       const dataUrl = await toPng(el, {
         cacheBust: true,
         pixelRatio: 2,
-        backgroundColor: "#0b0f17",
+        backgroundColor: "#ffffff",
       });
 
       const a = document.createElement("a");
