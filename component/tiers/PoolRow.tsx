@@ -14,26 +14,99 @@ type Props = {
 
 export default function PoolRow({ itemIds, charactersById, groupByElement = false }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: "pool" });
+  const scrollRef = React.useRef<HTMLDivElement | null>(null);
+  const [scrollLeft, setScrollLeft] = React.useState(0);
+  const [viewportWidth, setViewportWidth] = React.useState(0);
+  const ICON_SIZE = 48;
+  const OVERSCAN_PX = ICON_SIZE * 6;
   const renderItems: React.ReactNode[] = [];
-  let prevElement: CharacterForUI["element"] | null = null;
+  const groupedRows: string[][] = [];
 
-  for (const id of itemIds) {
-    const c = charactersById.get(id);
-    if (!c) continue;
+  if (groupByElement) {
+    let currentRow: string[] = [];
+    let prevElement: CharacterForUI["element"] | null = null;
 
-    if (groupByElement && prevElement !== null && c.element !== prevElement) {
-      renderItems.push(<div key={`break-${id}`} className="elementBreak" aria-hidden="true" />);
+    for (const id of itemIds) {
+      const c = charactersById.get(id);
+      if (!c) continue;
+
+      if (prevElement !== null && c.element !== prevElement) {
+        if (currentRow.length > 0) groupedRows.push(currentRow);
+        currentRow = [];
+      }
+
+      currentRow.push(id);
+      prevElement = c.element;
     }
 
-    renderItems.push(<DraggableIcon key={id} id={id} character={c} />);
-    prevElement = c.element;
+    if (currentRow.length > 0) groupedRows.push(currentRow);
+  } else {
+    for (const id of itemIds) {
+      const c = charactersById.get(id);
+      if (!c) continue;
+      renderItems.push(<DraggableIcon key={id} id={id} character={c} />);
+    }
   }
+
+  React.useEffect(() => {
+    if (!groupByElement) return;
+    const node = scrollRef.current;
+    if (!node) return;
+
+    const updateSize = () => setViewportWidth(node.clientWidth);
+    updateSize();
+
+    const ro = new ResizeObserver(() => updateSize());
+    ro.observe(node);
+
+    return () => {
+      ro.disconnect();
+    };
+  }, [groupByElement]);
+
+  const onPoolScroll = React.useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    setScrollLeft(e.currentTarget.scrollLeft);
+  }, []);
 
   return (
     <div ref={setNodeRef} className="poolRow" data-over={isOver ? "1" : "0"}>
-      <div className="poolItems">
-        {renderItems}
-      </div>
+      {groupByElement ? (
+        <div ref={scrollRef} className="poolElementRows" onScroll={onPoolScroll}>
+          <div className="poolElementRowsInner">
+            {groupedRows.map((row, rowIdx) => {
+              const startIndex = Math.max(0, Math.floor((scrollLeft - OVERSCAN_PX) / ICON_SIZE));
+              const endIndex = Math.min(
+                row.length,
+                Math.ceil((scrollLeft + viewportWidth + OVERSCAN_PX) / ICON_SIZE)
+              );
+              const visibleIds = row.slice(startIndex, endIndex);
+
+              return (
+                <div key={`row-${rowIdx}`} className="elementRow">
+                  <div className="elementItems" style={{ width: row.length * ICON_SIZE }}>
+                    {visibleIds.map((id, visibleIndex) => {
+                      const absoluteIndex = startIndex + visibleIndex;
+                      const c = charactersById.get(id);
+                      if (!c) return null;
+                      return (
+                        <div
+                          key={id}
+                          className="virtualItem"
+                          style={{ left: absoluteIndex * ICON_SIZE }}
+                        >
+                          <DraggableIcon id={id} character={c} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="poolItems">{renderItems}</div>
+      )}
 
       <style jsx>{`
         .poolRow {
@@ -41,6 +114,10 @@ export default function PoolRow({ itemIds, charactersById, groupByElement = fals
           border: 1px dashed var(--border);
           border-radius: var(--radius);
           background: rgba(255, 255, 255, 0.03);
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          overflow-x: hidden;
         }
 
         .poolRow[data-over="1"] {
@@ -54,10 +131,37 @@ export default function PoolRow({ itemIds, charactersById, groupByElement = fals
           min-height: 72px;
         }
 
-        .elementBreak {
-          flex-basis: 100%;
+        .poolElementRows {
+          display: grid;
+          gap: 4px;
           width: 100%;
-          height: 0;
+          max-width: 100%;
+          min-width: 0;
+          overflow-x: auto;
+          overflow-y: hidden;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .poolElementRowsInner {
+          display: grid;
+          gap: 4px;
+          width: max-content;
+          min-width: 100%;
+        }
+
+        .elementRow {
+          width: max-content;
+        }
+
+        .elementItems {
+          position: relative;
+          height: 48px;
+          min-width: max-content;
+        }
+
+        .virtualItem {
+          position: absolute;
+          top: 0;
         }
       `}</style>
     </div>

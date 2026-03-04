@@ -395,11 +395,17 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
       <style jsx>{`
         .tierBoardRoot {
           width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
         }
 
         .tierBoardInner {
           display: grid;
           gap: 0;
+          min-width: 0;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
         }
 
         .filterArea {
