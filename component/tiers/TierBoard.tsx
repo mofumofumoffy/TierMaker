@@ -39,6 +39,8 @@ type Props = {
   onSortOrderChange: (next: "asc" | "desc") => void;
   isElementOrderEnabled: boolean;
   onElementOrderChange: (next: boolean) => void;
+  isAllElementsMode: boolean;
+  onSelectAllElements: () => void;
   selectedElements: Set<CharacterElement>;
   onToggleElement: (element: CharacterElement) => void;
   selectedObtains: Set<CharacterObtain>;
@@ -68,6 +70,8 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
     onSortOrderChange,
     isElementOrderEnabled,
     onElementOrderChange,
+    isAllElementsMode,
+    onSelectAllElements,
     selectedElements,
     onToggleElement,
     selectedObtains,
@@ -190,9 +194,19 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
               <div className="filterLeftCol">
                 <div className="labelRow">
                   <span className="filterLabel">属性</span>
-                  <div className="inlineBtns">
-                    {elementOrder.map((el) => {
-                      const selected = selectedElements.has(el);
+                    <div className="inlineBtns">
+                      <button
+                        type="button"
+                        className="elementBtn"
+                        data-selected={isAllElementsMode ? "1" : "0"}
+                        onClick={onSelectAllElements}
+                        aria-label="全属性"
+                      >
+                        <img className="elementBtnIcon" src="/icon/icon_全.avif" alt="全属性" />
+                      </button>
+
+                      {elementOrder.map((el) => {
+                        const selected = selectedElements.has(el);
                       return (
                         <button
                           key={el}

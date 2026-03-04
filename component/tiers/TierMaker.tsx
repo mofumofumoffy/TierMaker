@@ -93,8 +93,9 @@ export default function TierMaker({ characters, initialTiers }: Props) {
   const [yearTo, setYearTo] = React.useState<YearValue>("");
   const [sortOrder, setSortOrder] = React.useState<SortOrder>("desc");
   const [isElementOrderEnabled, setIsElementOrderEnabled] = React.useState(true);
+  const [isAllElementsMode, setIsAllElementsMode] = React.useState(true);
   const [selectedElements, setSelectedElements] = React.useState<Set<CharacterElement>>(
-    () => new Set(ELEMENT_OPTIONS)
+    () => new Set<CharacterElement>()
   );
   const [selectedObtains, setSelectedObtains] = React.useState<Set<CharacterObtain>>(
     () => new Set<CharacterObtain>(["ガチャ"])
@@ -121,7 +122,7 @@ export default function TierMaker({ characters, initialTiers }: Props) {
   const normalizedFilter = nameFilter.trim().toLowerCase();
 
   const visibleCharacterIds = React.useMemo(() => {
-    const isAllElementsSelected = ELEMENT_OPTIONS.every((el) => selectedElements.has(el));
+    const isAllElementsSelected = isAllElementsMode;
     const isAllObtainsSelected = OBTAIN_OPTIONS.every((o) => selectedObtains.has(o));
     const isAllGachasSelected = GACHA_OPTIONS.every((g) => selectedGachas.has(g));
     const isAllOtherCategoriesSelected = OTHER_CATEGORY_OPTIONS.every((o) =>
@@ -145,7 +146,7 @@ export default function TierMaker({ characters, initialTiers }: Props) {
       const nameKana = c.nameKana.trim().toLowerCase();
       const isNameMatched =
         !normalizedFilter || name.includes(normalizedFilter) || nameKana.includes(normalizedFilter);
-      const isElementMatched = !!c.element && selectedElements.has(c.element);
+      const isElementMatched = isAllElementsMode || (!!c.element && selectedElements.has(c.element));
       const isObtainMatched = !!c.obtain && selectedObtains.has(c.obtain);
       const isSubtypeMatched =
         c.obtain === "ガチャ"
@@ -169,6 +170,7 @@ export default function TierMaker({ characters, initialTiers }: Props) {
     characters,
     normalizedFilter,
     selectedElements,
+    isAllElementsMode,
     selectedObtains,
     selectedGachas,
     selectedOtherCategories,
@@ -186,6 +188,12 @@ export default function TierMaker({ characters, initialTiers }: Props) {
       }
       return next;
     });
+    setIsAllElementsMode(false);
+  }
+
+  function selectAllElements() {
+    setIsAllElementsMode(true);
+    setSelectedElements(new Set<CharacterElement>());
   }
 
   function toggleObtainFilter(obtain: CharacterObtain) {
@@ -357,6 +365,8 @@ export default function TierMaker({ characters, initialTiers }: Props) {
           onElementOrderChange={setIsElementOrderEnabled}
           selectedElements={selectedElements}
           onToggleElement={toggleElementFilter}
+          isAllElementsMode={isAllElementsMode}
+          onSelectAllElements={selectAllElements}
           selectedObtains={selectedObtains}
           onToggleObtain={toggleObtainFilter}
           selectedGachas={selectedGachas}
