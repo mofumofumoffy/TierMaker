@@ -15,9 +15,9 @@ export default function HomePage() {
         href="/tier"
         style={{
           display: "inline-block",
-          border: "1px solid #1d4ed8",
-          background: "#3b82f6",
-          color: "#ffffff",
+          border: "1px solid #1f2937",
+          background: "#f3f4f6",
+          color: "#111827",
           borderRadius: "10px",
           padding: "10px 14px",
           fontWeight: 700,
@@ -26,6 +26,24 @@ export default function HomePage() {
       >
         Tierメーカーへ
       </Link>
+
+      <div style={{ marginTop: "10px" }}>
+        <Link
+          href="/calc"
+          style={{
+            display: "inline-block",
+            border: "1px solid #1f2937",
+            background: "#f3f4f6",
+            color: "#111827",
+            borderRadius: "10px",
+            padding: "10px 14px",
+            fontWeight: 700,
+            textDecoration: "none",
+          }}
+        >
+          ダメージ計算ツールへ
+        </Link>
+      </div>
     </section>
   );
 }

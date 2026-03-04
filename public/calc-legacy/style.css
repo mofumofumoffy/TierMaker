@@ -1,0 +1,760 @@
+/* =======================================================
+   0. リセット & 基本設定
+   ======================================================= */
+/* 全要素でパディングとボーダーを幅に含める（横幅はみ出し防止） */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+:root {
+    /* --- メインカラー --- */
+    --primary-color: #8bc34a; /* 黄緑 */
+    --primary-dark: #689f38;  /* 濃い緑 */
+    
+    /* --- ライトモード (デフォルト) --- */
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --card-bg: #fafafa;
+    --input-bg: #ffffff;
+    --border-color: #ddd;
+    --sub-text: #666666;
+    --header-bg: #ffffff;
+    --tab-bg: #eeeeee;
+    --hover-bg: #f0f0f0;
+    --history-bg: #ffffff;
+}
+
+/* --- ダークモード定義 --- */
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --input-bg: #2c2c2c;
+    --border-color: #444444;
+    --sub-text: #aaaaaa;
+    --header-bg: #1e1e1e;
+    --tab-bg: #333333;
+    --hover-bg: #3a3a3a;
+    --history-bg: #2c2c2c;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Noto Sans JP', sans-serif;
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden; /* 横スクロール禁止 */
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: transparent;
+    padding: 15px 15px 140px 15px; /* フッター用に下部を空ける */
+    min-height: 100vh;
+}
+
+/* ==============================================
+   1. ヘッダー & ナビゲーション
+   ============================================== */
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+    background-color: var(--header-bg);
+    transition: background-color 0.3s;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+h1 {
+    text-align: left;
+    color: var(--text-color);
+    margin: 0;
+    font-size: 20px;
+}
+
+/* ハンバーガーアイコン */
+.hamburger-menu {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+}
+.hamburger-menu svg {
+    fill: #555;
+    transition: fill 0.3s;
+}
+[data-theme="dark"] .hamburger-menu svg { fill: #ddd; }
+.hamburger-menu:hover svg { fill: var(--primary-color); }
+
+/* サイドメニュー */
+#side-menu {
+    position: fixed;
+    top: 0;
+    left: -250px;
+    width: 250px;
+    height: 100%;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    z-index: 20000;
+    transition: left 0.3s ease, box-shadow 0.3s ease;
+    padding-top: 20px;
+    border-right: 1px solid var(--border-color);
+}
+#side-menu.active {
+    left: 0;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+}
+
+#menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 19999;
+    display: none;
+}
+#menu-overlay.active { display: block; }
+
+.menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.menu-list li {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--text-color);
+    transition: background 0.2s;
+}
+.menu-list li:hover {
+    background-color: var(--hover-bg);
+    color: var(--primary-color);
+}
+.menu-close {
+    text-align: right;
+    padding: 0 20px 10px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+}
+
+/* ヘッダーボタン類 */
+.reset-button, #bell-icon, .header-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    border: none;
+}
+.reset-button {
+    background-color: #f44336;
+    color: white;
+    padding: 0;
+}
+.reset-button:hover { background-color: #d32f2f; }
+
+#bell-icon {
+    background-color: var(--primary-color);
+    fill: #ffffff;
+}
+#bell-icon:hover { background-color: var(--primary-dark); }
+
+.header-icon-btn { color: var(--text-color); }
+.header-icon-btn:active { transform: scale(0.9); }
+#theme-toggle-btn:hover { background-color: rgba(0,0,0,0.1); }
+[data-theme="dark"] #theme-toggle-btn:hover { background-color: rgba(255,255,255,0.1); }
+
+
+/* ==============================================
+   2. レイアウト & 入力フォーム
+   ============================================== */
+/* グリッドレイアウト */
+.grid-4-col {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.grid-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--card-bg);
+    height: 100%;
+}
+
+/* カテゴリセクション */
+.category-section { margin-bottom: 20px; }
+.category-title {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 18px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+/* 入力欄共通設定 */
+input, select, button { font-size: 13px; }
+
+input[type="number"], select, input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+input[type="number"]:focus, select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(139, 195, 74, 0.2);
+}
+input:disabled, select:disabled {
+    background-color: var(--hover-bg);
+    color: #999;
+    cursor: not-allowed;
+    border-color: var(--border-color);
+}
+input[type="checkbox"] {
+    transform: scale(1.2);
+    accent-color: var(--primary-color);
+    cursor: pointer;
+    margin: 0;
+}
+
+/* メイン入力エリア */
+.main-input {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: var(--card-bg);
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    color: var(--text-color);
+}
+.main-input label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* チェックボックス付きラベル */
+.check-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    margin: 0;
+    color: var(--text-color);
+    line-height: 1.4;
+}
+
+/* 複数判定モードの枠（色付き） */
+.multi-mode-box {
+    background-color: #e8f5e9;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid #8bc34a;
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+}
+/* ダークモード時の複数判定枠 */
+[data-theme="dark"] .multi-mode-box {
+    background-color: rgba(139, 195, 74, 0.15);
+    border-color: #558b2f;
+    color: #e0e0e0;
+}
+
+
+/* ==============================================
+   3. UIコンポーネント (タブ・スイッチ)
+   ============================================== */
+/* タブ切り替えボタン */
+.tab-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    background-color: var(--tab-bg);
+    padding: 4px;
+    border-radius: 4px;
+    gap: 4px; 
+}
+.tab-button {
+    padding: 10px 0;
+    flex: 1; /* 均等配置 */
+    border: none;
+    background-color: transparent;
+    color: var(--sub-text);
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+    text-align: center;
+}
+.tab-button:hover {
+    background-color: rgba(0,0,0,0.05);
+    color: var(--text-color);
+}
+[data-theme="dark"] .tab-button:hover { background-color: rgba(255,255,255,0.1); }
+
+.tab-button.active {
+    background-color: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+/* ダークモード時、アクティブ色の優先度を上げる */
+[data-theme="dark"] .tab-button.active {
+    background-color: var(--primary-color) !important;
+    color: #fff !important;
+}
+
+/* モード切替スイッチ（直殴り/友情） */
+.mode-switch-container {
+    display: flex;
+    justify-content: center;
+    background-color: var(--tab-bg);
+    border-radius: 30px; /* 丸型 */
+    padding: 4px;
+    margin: 0 auto 20px auto;
+    width: fit-content;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+/* ダークモード時の背景（グレー） */
+[data-theme="dark"] .mode-switch-container {
+    background-color: #555555 !important;
+}
+
+.mode-switch-label {
+    position: relative;
+    cursor: pointer;
+}
+.mode-switch-label input { display: none; }
+
+.mode-switch-text {
+    display: block;
+    padding: 8px 25px;
+    border-radius: 30px; /* 丸型 */
+    font-weight: bold;
+    color: var(--sub-text);
+    transition: all 0.3s;
+}
+/* ダークモード時の非選択文字色 */
+[data-theme="dark"] .mode-switch-text {
+    color: #cccccc;
+}
+
+/* 選択時のスタイル */
+.mode-switch-label input:checked + .mode-switch-text {
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+/* ダークモード時の選択時（黒ボタン・緑文字） */
+[data-theme="dark"] .mode-switch-label input:checked + .mode-switch-text {
+    background-color: #000000 !important;
+    color: var(--primary-dark) !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+
+/* ==============================================
+   4. ワンパン判定 & 結果表示
+   ============================================== */
+/* ワンパン判定のオプション枠 */
+.onepan-option-box {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    background-color: var(--hover-bg);
+    border: 1px solid var(--border-color);
+}
+
+/* ワンパン判定結果ボックス */
+#verify-result-box {
+    position: relative;
+    bottom: auto;
+    border-radius: 8px;
+    margin-top: 20px;
+    padding: 10px;
+    box-shadow: none;
+    
+    /* デフォルト状態 */
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* 判定結果：成功 (赤系) */
+#verify-result-box.judge-success {
+    background-color: #ffebee;
+    color: #d32f2f;
+    border-color: #d32f2f;
+}
+[data-theme="dark"] #verify-result-box.judge-success {
+    background-color: #4a0000;
+    color: #ff8a80;
+    border-color: #ff5252;
+}
+
+/* 判定結果：失敗 (青系) */
+#verify-result-box.judge-fail {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border-color: #1976d2;
+}
+[data-theme="dark"] #verify-result-box.judge-fail {
+    background-color: #0d2b4a;
+    color: #82b1ff;
+    border-color: #448aff;
+}
+
+
+/* フッター結果表示 (Bottom Sheet) */
+.result-box {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: var(--card-bg);
+    padding: 10px 0;
+    margin: 0;
+    border-top: 4px solid var(--primary-color);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -4px 10px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    max-height: 80vh;
+    overflow-y: auto;
+    color: var(--text-color);
+}
+.result-box.open {
+    background-color: var(--card-bg); 
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+}
+[data-theme="dark"] .result-box.open { background-color: #252525; }
+
+.result-label {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--text-color);
+}
+.result-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--text-color);
+    word-break: break-all;
+    line-height: 1.2;
+}
+
+#result-details {
+    width: 90%;
+    margin-top: 15px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 10px;
+    text-align: left;
+    font-size: 13px;
+    padding-bottom: 20px;
+}
+.detail-header {
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+    text-align: center;
+}
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.detail-name { color: var(--sub-text); }
+.detail-val { font-weight: bold; color: var(--text-color); }
+
+
+/* ==============================================
+   5. わくわくの実 & その他
+   ============================================== */
+.detail-toggle-btn {
+    margin-top: 5px;
+    padding: 4px 10px;
+    font-size: 11px;
+    background-color: var(--hover-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    color: var(--text-color);
+}
+#fruit-detail-container {
+    margin-top: 8px;
+    border-radius: 6px;
+    padding: 4px 0;
+}
+.fruit-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+.fruit-grid:last-child { margin-bottom: 0; }
+.fruit-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 4px;
+    padding: 2px 0;
+}
+.fruit-label {
+    font-size: 9px;
+    color: var(--sub-text);
+    margin-bottom: 2px;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+    background-color: var(--hover-bg);
+    padding: 2px 0;
+    border-radius: 2px;
+}
+.fruit-buttons-row {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    width: 100%;
+    padding: 2px;
+}
+.fruit-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex: 1;
+    padding: 4px 0;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    transition: all 0.2s;
+    opacity: 0.6;
+}
+@media (hover: hover) {
+    .fruit-item:hover {
+        opacity: 0.85;
+        background-color: var(--hover-bg);
+    }
+}
+.fruit-item.selected {
+    border-color: var(--primary-color);
+    opacity: 1.0 !important;
+    box-shadow: 0 0 0 1px var(--primary-color);
+    background-color: rgba(139, 195, 74, 0.2);
+}
+.fruit-item img {
+    width: 35px;
+    height: 35px;
+    image-rendering: -webkit-optimize-contrast;
+    object-fit: contain;
+}
+
+.preset-group {
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 10px;
+    background-color: var(--hover-bg);
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+/* --- 履歴ログ --- */
+#history-log {
+    position: fixed;
+    top: 65px;
+    right: 15px;
+    width: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: var(--history-bg);
+    color: var(--text-color);
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 9999;
+    font-size: 13px;
+}
+
+/* 閉じるボタン (修正: 帯を削除し、右上に固定配置) */
+.log-close-btn {
+    position: absolute; /* 絶対配置に変更 */
+    top: 5px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+    line-height: 30px;
+    text-align: center;
+    background-color: transparent; /* 背景透明 */
+    border: none; /* 枠線なし */
+    margin: 0;
+    padding: 0;
+    z-index: 100;
+}
+.log-close-btn:hover {
+    color: #f44336;
+}
+
+.history-title {
+    font-weight: bold;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    color: var(--text-color);
+    /* 閉じるボタンと被らないよう少し右に余白を開けるなら */
+    margin-right: 20px; 
+}
+
+.history-list li {
+    margin-bottom: 8px;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 8px;
+}
+.history-list .date {
+    display: block;
+    font-weight: bold;
+    color: var(--sub-text);
+    font-size: 11px;
+}
+
+.manual-content { color: var(--text-color); }
+.manual-content h2 {
+    border-left: 5px solid var(--primary-color);
+    padding-left: 10px;
+    margin-top: 30px;
+    font-size: 18px;
+    color: var(--primary-dark);
+}
+[data-theme="dark"] .manual-content h2 { color: var(--primary-color); }
+.manual-note {
+    background-color: var(--hover-bg);
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--sub-text);
+    margin: 5px 0 10px 0;
+}
+
+/* ==============================================
+   7. レスポンシブ設定 (スマホ対応)
+   ============================================== */
+@media (max-width: 768px) {
+    .container { padding: 10px 10px 140px 10px; }
+    .header-row { margin-bottom: 15px; }
+    .header-left { gap: 10px; }
+    h1 { font-size: 16px; }
+    
+    .reset-button, #bell-icon, .header-icon-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 18px;
+    }
+    
+    .grid-4-col {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 6px;
+    }
+    .grid-item { padding: 8px 5px; }
+    
+    .check-label {
+        font-size: 11px;
+        letter-spacing: -0.5px;
+    }
+    .preset-group .check-label {
+        font-size: 10px;
+        white-space: nowrap;
+    }
+    
+    input[type="number"], select {
+        padding: 4px;
+        height: 30px;
+        font-size: 12px;
+    }
+    
+    #history-log {
+        width: 85%;
+        right: 5%;
+    }
+    
+    .result-box {
+        padding: 8px 0;
+        border-radius: 12px 12px 0 0;
+    }
+    .result-value { font-size: 22px; }
+
+    /* ワンパン判定のgap調整 */
+    #view-verify > .category-section > .main-input > div[style*="gap: 20px"] {
+        gap: 8px !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .onepan-option-box {
+        width: 100%;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+}
+
+@media (min-width: 769px) {
+    .grid-4-col {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+}
