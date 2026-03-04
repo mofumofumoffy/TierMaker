@@ -194,11 +194,17 @@ export default function PoolRow({ itemIds, charactersById, groupByElement = fals
           overflow-x: auto;
           overflow-y: hidden;
           -webkit-overflow-scrolling: touch;
-          height: 14px;
+          height: 18px;
         }
 
         .poolBottomScrollbarInner {
           height: 1px;
+        }
+
+        @media (max-width: 768px) {
+          .poolBottomScrollbar {
+            height: 30px;
+          }
         }
 
         .elementRow {
