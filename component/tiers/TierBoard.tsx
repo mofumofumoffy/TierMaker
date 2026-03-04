@@ -136,9 +136,9 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
   };
 
   return (
-    <div ref={ref} className="tierBoardRoot">
+    <div className="tierBoardRoot">
       <div className="tierBoardInner">
-        <div className="tiersFrame" style={tiersFrameStyle}>
+        <div ref={ref} className="tiersFrame" style={tiersFrameStyle}>
           {tierMeta.map((tier, index) => {
             const tierItems = containers[tier.id] ?? [];
 
