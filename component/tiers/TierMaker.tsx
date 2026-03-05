@@ -147,6 +147,18 @@ export default function TierMaker({ characters, initialTiers }: Props) {
   const normalizedFilter = appliedNameFilter.trim().toLowerCase();
 
   const visibleCharacterIds = React.useMemo(() => {
+    if (normalizedFilter) {
+      const ids = new Set<string>();
+      for (const c of characters) {
+        const name = c.name.trim().toLowerCase();
+        const nameKana = c.nameKana.trim().toLowerCase();
+        if (name.includes(normalizedFilter) || nameKana.includes(normalizedFilter)) {
+          ids.add(c.id);
+        }
+      }
+      return ids;
+    }
+
     const isAllElementsSelected = appliedIsAllElementsMode;
     const isAllObtainsSelected = OBTAIN_OPTIONS.every((o) => appliedSelectedObtains.has(o));
     const isAllGachasSelected = GACHA_OPTIONS.every((g) => appliedSelectedGachas.has(g));
@@ -167,10 +179,6 @@ export default function TierMaker({ characters, initialTiers }: Props) {
 
     const ids = new Set<string>();
     for (const c of characters) {
-      const name = c.name.trim().toLowerCase();
-      const nameKana = c.nameKana.trim().toLowerCase();
-      const isNameMatched =
-        !normalizedFilter || name.includes(normalizedFilter) || nameKana.includes(normalizedFilter);
       const isElementMatched =
         appliedIsAllElementsMode || (!!c.element && appliedSelectedElements.has(c.element));
       const isObtainMatched = !!c.obtain && appliedSelectedObtains.has(c.obtain);
@@ -187,7 +195,7 @@ export default function TierMaker({ characters, initialTiers }: Props) {
         (appliedYearFrom === "" && appliedYearTo === "") ||
         (implYear !== null && implYear >= minYear && implYear <= maxYear);
 
-      if (isNameMatched && isElementMatched && isObtainMatched && isSubtypeMatched && isYearMatched) {
+      if (isElementMatched && isObtainMatched && isSubtypeMatched && isYearMatched) {
         ids.add(c.id);
       }
     }
