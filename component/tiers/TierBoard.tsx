@@ -392,14 +392,14 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
           <div className="betweenFilterAndPool" />
         </div>
 
-        <SortableContext id="pool" items={sortedPoolItems} strategy={rectSortingStrategy}>
+        <div className="poolArea" style={tiersFrameStyle}>
           <PoolRow
             itemIds={sortedPoolItems}
             charactersById={charactersById}
             groupByElement={effectiveElementOrderEnabled}
             activeItemId={activeItemId}
           />
-        </SortableContext>
+        </div>
       </div>
 
       <DragOverlay>
@@ -424,6 +424,11 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
 
         .filterArea {
           max-width: 100%;
+        }
+
+        .poolArea {
+          max-width: 100%;
+          overflow: hidden;
         }
 
         .tiersFrame {

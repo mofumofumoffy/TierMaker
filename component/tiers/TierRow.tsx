@@ -146,7 +146,7 @@ export default function TierRow({
           display: grid;
           grid-template-columns: 80px 1fr 24px;
           margin: 0;
-          gap: 12px;
+          gap: 0;
           align-items: stretch;
           padding: 2px 10px 2px 0;
           border: 1px solid #000000;
@@ -275,12 +275,6 @@ export default function TierRow({
           gap: 0;
           min-height: 48px;
           align-content: flex-start;
-        }
-
-        @media (max-width: 768px) {
-          .tierRow {
-            gap: 0;
-          }
         }
       `}</style>
     </div>

@@ -4,6 +4,7 @@ import React from "react";
 import type { CharacterForUI } from "@/app/tier/types";
 import DraggableIcon from "./DraggableIcon";
 import { useDroppable } from "@dnd-kit/core";
+import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 
 type Props = {
   itemIds: string[];
@@ -210,8 +211,34 @@ export default function PoolRow({
     };
   }, [flatIds, gridWidth, gridTopAbs, viewportHeight, windowScrollY, maxRenderCount, activeItemId]);
 
+  const visibleIdsForSortable = React.useMemo(() => {
+    if (!groupByElement) return nonGroupWindow.visibleIds;
+    const ids: string[] = [];
+    for (const row of groupedRows) {
+      const perRowCount = Math.max(1, Math.ceil(maxRenderCount / Math.max(groupedRows.length, 1)));
+      const centerIndex = Math.floor(scrollLeft / ICON_SIZE);
+      const rawStart = centerIndex - Math.floor(perRowCount / 2);
+      let startIndex = clamp(rawStart, 0, Math.max(0, row.length - perRowCount));
+      let endIndex = Math.min(row.length, startIndex + perRowCount);
+      if (activeItemId) {
+        const activeIndex = row.indexOf(activeItemId);
+        if (activeIndex >= 0 && (activeIndex < startIndex || activeIndex >= endIndex)) {
+          startIndex = clamp(
+            activeIndex - Math.floor(perRowCount / 2),
+            0,
+            Math.max(0, row.length - perRowCount)
+          );
+          endIndex = Math.min(row.length, startIndex + perRowCount);
+        }
+      }
+      ids.push(...row.slice(startIndex, endIndex));
+    }
+    return ids;
+  }, [groupByElement, nonGroupWindow.visibleIds, groupedRows, maxRenderCount, scrollLeft, activeItemId]);
+
   return (
-    <div ref={setNodeRef} className="poolRow" data-over={isOver ? "1" : "0"}>
+    <SortableContext id="pool" items={visibleIdsForSortable} strategy={rectSortingStrategy}>
+      <div ref={setNodeRef} className="poolRow" data-over={isOver ? "1" : "0"}>
       {groupByElement ? (
         <>
           <div ref={scrollRef} className="poolElementRows" onScroll={onPoolScroll}>
@@ -406,6 +433,7 @@ export default function PoolRow({
           top: 0;
         }
       `}</style>
-    </div>
+      </div>
+    </SortableContext>
   );
 }
