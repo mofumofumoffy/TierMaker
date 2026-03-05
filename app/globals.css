@@ -312,10 +312,16 @@ a {
 }
 
 .poolItems {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(48px, 48px));
+  grid-auto-rows: 48px;
+  justify-content: start;
   gap: 0;
   min-height: 72px;
+}
+
+.gridSpacer {
+  grid-column: 1 / -1;
 }
 
 .poolElementRows {
@@ -379,7 +385,7 @@ a {
   border-radius: 0;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.05);
-  overflow: hidden;
+  overflow: visible;
   display: grid;
   place-items: center;
 }
@@ -594,26 +600,6 @@ a {
 
 .betweenFilterAndPool {
   height: 1px;
-}
-
-.loadMoreWrap {
-  margin-top: 8px;
-  display: flex;
-  justify-content: center;
-}
-
-.loadMoreBtn {
-  border: 1px solid #1f2937;
-  background: #f3f4f6;
-  color: #111827;
-  border-radius: 10px;
-  padding: 6px 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.loadMoreBtn:hover {
-  background: #e5e7eb;
 }
 
 @media (max-width: 768px) {

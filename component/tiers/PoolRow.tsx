@@ -1,9 +1,8 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import type { CharacterForUI } from "@/app/tier/types";
 import DraggableIcon from "./DraggableIcon";
-
 import { useDroppable } from "@dnd-kit/core";
 
 type Props = {
@@ -12,43 +11,66 @@ type Props = {
   groupByElement?: boolean;
 };
 
+const ICON_SIZE = 48;
+const MOBILE_RENDER_COUNT = 80;
+const PC_RENDER_COUNT = 200;
+
+function clamp(v: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, v));
+}
+
 export default function PoolRow({ itemIds, charactersById, groupByElement = false }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: "pool" });
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   const bottomScrollRef = React.useRef<HTMLDivElement | null>(null);
+  const gridRef = React.useRef<HTMLDivElement | null>(null);
   const syncingRef = React.useRef<"main" | "bottom" | null>(null);
   const [scrollLeft, setScrollLeft] = React.useState(0);
   const [viewportWidth, setViewportWidth] = React.useState(0);
-  const ICON_SIZE = 48;
-  const OVERSCAN_PX = ICON_SIZE * 6;
-  const renderItems: React.ReactNode[] = [];
-  const groupedRows: string[][] = [];
+  const [viewportHeight, setViewportHeight] = React.useState(0);
+  const [windowScrollY, setWindowScrollY] = React.useState(0);
+  const [gridTopAbs, setGridTopAbs] = React.useState(0);
+  const [gridWidth, setGridWidth] = React.useState(0);
 
-  if (groupByElement) {
-    let currentRow: string[] = [];
+  const maxRenderCount = React.useMemo(() => {
+    if (typeof window === "undefined") return PC_RENDER_COUNT;
+    return window.innerWidth <= 768 ? MOBILE_RENDER_COUNT : PC_RENDER_COUNT;
+  }, [viewportWidth]);
+
+  const groupedRows = React.useMemo(() => {
+    if (!groupByElement) return [] as string[][];
+    const rows: string[][] = [];
+    let current: string[] = [];
     let prevElement: CharacterForUI["element"] | null = null;
 
     for (const id of itemIds) {
       const c = charactersById.get(id);
       if (!c) continue;
-
       if (prevElement !== null && c.element !== prevElement) {
-        if (currentRow.length > 0) groupedRows.push(currentRow);
-        currentRow = [];
+        if (current.length > 0) rows.push(current);
+        current = [];
       }
-
-      currentRow.push(id);
+      current.push(id);
       prevElement = c.element;
     }
+    if (current.length > 0) rows.push(current);
+    return rows;
+  }, [groupByElement, itemIds, charactersById]);
 
-    if (currentRow.length > 0) groupedRows.push(currentRow);
-  } else {
-    for (const id of itemIds) {
-      const c = charactersById.get(id);
-      if (!c) continue;
-      renderItems.push(<DraggableIcon key={id} id={id} character={c} />);
-    }
-  }
+  React.useEffect(() => {
+    const updateWindowMetrics = () => {
+      setViewportHeight(window.innerHeight);
+      setWindowScrollY(window.scrollY);
+    };
+
+    updateWindowMetrics();
+    window.addEventListener("scroll", updateWindowMetrics, { passive: true });
+    window.addEventListener("resize", updateWindowMetrics);
+    return () => {
+      window.removeEventListener("scroll", updateWindowMetrics);
+      window.removeEventListener("resize", updateWindowMetrics);
+    };
+  }, []);
 
   React.useEffect(() => {
     if (!groupByElement) return;
@@ -60,9 +82,29 @@ export default function PoolRow({ itemIds, charactersById, groupByElement = fals
 
     const ro = new ResizeObserver(() => updateSize());
     ro.observe(node);
+    return () => ro.disconnect();
+  }, [groupByElement]);
 
+  React.useEffect(() => {
+    if (groupByElement) return;
+    const node = gridRef.current;
+    if (!node) return;
+
+    const updateGridMetrics = () => {
+      const rect = node.getBoundingClientRect();
+      setGridTopAbs(rect.top + window.scrollY);
+      setGridWidth(rect.width);
+    };
+
+    updateGridMetrics();
+    const ro = new ResizeObserver(() => updateGridMetrics());
+    ro.observe(node);
+    window.addEventListener("scroll", updateGridMetrics, { passive: true });
+    window.addEventListener("resize", updateGridMetrics);
     return () => {
       ro.disconnect();
+      window.removeEventListener("scroll", updateGridMetrics);
+      window.removeEventListener("resize", updateGridMetrics);
     };
   }, [groupByElement]);
 
@@ -101,17 +143,52 @@ export default function PoolRow({ itemIds, charactersById, groupByElement = fals
     const view = Math.max(viewportWidth, 0);
     const full = Math.max(maxRowWidth, view);
     const canScroll = full > view + 1;
-    if (!canScroll || view <= 0) {
-      return { thumbWidth: view, thumbLeft: 0 };
-    }
+    if (!canScroll || view <= 0) return { thumbWidth: view, thumbLeft: 0 };
 
     const rawThumbWidth = (view / full) * view;
     const thumbWidth = Math.max(40, Math.min(view, rawThumbWidth));
     const maxScrollLeft = Math.max(full - view, 1);
     const maxThumbLeft = Math.max(view - thumbWidth, 0);
-    const thumbLeft = (Math.min(Math.max(scrollLeft, 0), maxScrollLeft) / maxScrollLeft) * maxThumbLeft;
+    const thumbLeft =
+      (Math.min(Math.max(scrollLeft, 0), maxScrollLeft) / maxScrollLeft) * maxThumbLeft;
     return { thumbWidth, thumbLeft };
   }, [maxRowWidth, viewportWidth, scrollLeft]);
+
+  const flatIds = React.useMemo(() => {
+    const ids: string[] = [];
+    for (const id of itemIds) {
+      if (charactersById.has(id)) ids.push(id);
+    }
+    return ids;
+  }, [itemIds, charactersById]);
+
+  const nonGroupWindow = React.useMemo(() => {
+    const columns = Math.max(1, Math.floor(Math.max(gridWidth, ICON_SIZE) / ICON_SIZE));
+    const total = flatIds.length;
+    const totalRows = Math.max(1, Math.ceil(total / columns));
+    const rowsToRender = Math.max(1, Math.ceil(maxRenderCount / columns));
+
+    const viewportCenterY = windowScrollY + viewportHeight * 0.5;
+    const anchorRow = clamp(
+      Math.floor((viewportCenterY - gridTopAbs) / ICON_SIZE),
+      0,
+      Math.max(0, totalRows - 1)
+    );
+    const startRow = clamp(
+      anchorRow - Math.floor(rowsToRender / 2),
+      0,
+      Math.max(0, totalRows - rowsToRender)
+    );
+    const endRow = Math.min(totalRows, startRow + rowsToRender);
+    const startIndex = startRow * columns;
+    const endIndex = Math.min(total, endRow * columns);
+
+    return {
+      visibleIds: flatIds.slice(startIndex, endIndex),
+      topSpacer: startRow * ICON_SIZE,
+      bottomSpacer: Math.max(0, (totalRows - endRow) * ICON_SIZE),
+    };
+  }, [flatIds, gridWidth, gridTopAbs, viewportHeight, windowScrollY, maxRenderCount]);
 
   return (
     <div ref={setNodeRef} className="poolRow" data-over={isOver ? "1" : "0"}>
@@ -120,20 +197,20 @@ export default function PoolRow({ itemIds, charactersById, groupByElement = fals
           <div ref={scrollRef} className="poolElementRows" onScroll={onPoolScroll}>
             <div className="poolElementRowsInner">
               {groupedRows.map((row, rowIdx) => {
-                const startIndex = Math.max(0, Math.floor((scrollLeft - OVERSCAN_PX) / ICON_SIZE));
-                const endIndex = Math.min(
-                  row.length,
-                  Math.ceil((scrollLeft + viewportWidth + OVERSCAN_PX) / ICON_SIZE)
-                );
+                const perRowCount = Math.max(1, Math.ceil(maxRenderCount / Math.max(groupedRows.length, 1)));
+                const centerIndex = Math.floor(scrollLeft / ICON_SIZE);
+                const rawStart = centerIndex - Math.floor(perRowCount / 2);
+                const startIndex = clamp(rawStart, 0, Math.max(0, row.length - perRowCount));
+                const endIndex = Math.min(row.length, startIndex + perRowCount);
                 const visibleIds = row.slice(startIndex, endIndex);
 
                 return (
                   <div key={`row-${rowIdx}`} className="elementRow">
                     <div className="elementItems" style={{ width: row.length * ICON_SIZE }}>
                       {visibleIds.map((id, visibleIndex) => {
-                        const absoluteIndex = startIndex + visibleIndex;
                         const c = charactersById.get(id);
                         if (!c) return null;
+                        const absoluteIndex = startIndex + visibleIndex;
                         return (
                           <div
                             key={id}
@@ -170,7 +247,19 @@ export default function PoolRow({ itemIds, charactersById, groupByElement = fals
           <div className="poolScrollHint" aria-hidden="true">左右にスワイプでスクロール</div>
         </>
       ) : (
-        <div className="poolItems">{renderItems}</div>
+        <div ref={gridRef} className="poolItems">
+          {nonGroupWindow.topSpacer > 0 ? (
+            <div className="gridSpacer" style={{ height: nonGroupWindow.topSpacer }} />
+          ) : null}
+          {nonGroupWindow.visibleIds.map((id) => {
+            const c = charactersById.get(id);
+            if (!c) return null;
+            return <DraggableIcon key={id} id={id} character={c} />;
+          })}
+          {nonGroupWindow.bottomSpacer > 0 ? (
+            <div className="gridSpacer" style={{ height: nonGroupWindow.bottomSpacer }} />
+          ) : null}
+        </div>
       )}
 
       <style jsx>{`
@@ -190,10 +279,16 @@ export default function PoolRow({ itemIds, charactersById, groupByElement = fals
         }
 
         .poolItems {
-          display: flex;
-          flex-wrap: wrap;
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(${ICON_SIZE}px, ${ICON_SIZE}px));
+          grid-auto-rows: ${ICON_SIZE}px;
+          justify-content: start;
           gap: 0;
           min-height: 72px;
+        }
+
+        .gridSpacer {
+          grid-column: 1 / -1;
         }
 
         .poolElementRows {
@@ -237,9 +332,6 @@ export default function PoolRow({ itemIds, charactersById, groupByElement = fals
         @media (max-width: 768px) {
           .poolBottomScrollbar {
             display: block;
-          }
-
-          .poolBottomScrollbar {
             height: 30px;
           }
 
@@ -274,7 +366,7 @@ export default function PoolRow({ itemIds, charactersById, groupByElement = fals
 
         .elementItems {
           position: relative;
-          height: 48px;
+          height: ${ICON_SIZE}px;
           min-width: max-content;
         }
 

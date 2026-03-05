@@ -143,22 +143,6 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
 
     return items;
   }, [filterPoolItems, containers, charactersById, effectiveSortOrder, effectiveElementOrderEnabled]);
-  const [initialPoolLimit, setInitialPoolLimit] = React.useState(200);
-  const [poolRenderLimit, setPoolRenderLimit] = React.useState(200);
-
-  React.useEffect(() => {
-    const nextInitial = window.innerWidth <= 768 ? 50 : 200;
-    setInitialPoolLimit(nextInitial);
-    setPoolRenderLimit(nextInitial);
-  }, []);
-
-  React.useEffect(() => {
-    setPoolRenderLimit(initialPoolLimit);
-  }, [visibleCharacterIds, effectiveSortOrder, effectiveElementOrderEnabled, initialPoolLimit]);
-
-  const visiblePoolItems = React.useMemo(() => {
-    return sortedPoolItems.slice(0, poolRenderLimit);
-  }, [sortedPoolItems, poolRenderLimit]);
   const estimatedRowHeight = 78;
   const tiersHeightPx = Math.max(estimatedRowHeight * tierMeta.length, 420);
   const tiersWidthPx = Math.round((tiersHeightPx * 16) / 9);
@@ -395,25 +379,13 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
           <div className="betweenFilterAndPool" />
         </div>
 
-        <SortableContext id="pool" items={visiblePoolItems} strategy={rectSortingStrategy}>
+        <SortableContext id="pool" items={sortedPoolItems} strategy={rectSortingStrategy}>
           <PoolRow
-            itemIds={visiblePoolItems}
+            itemIds={sortedPoolItems}
             charactersById={charactersById}
             groupByElement={effectiveElementOrderEnabled}
           />
         </SortableContext>
-
-        {poolRenderLimit < sortedPoolItems.length ? (
-          <div className="loadMoreWrap">
-            <button
-              type="button"
-              className="loadMoreBtn"
-              onClick={() => setPoolRenderLimit((prev) => prev + initialPoolLimit)}
-            >
-              さらに表示 ({visiblePoolItems.length}/{sortedPoolItems.length})
-            </button>
-          </div>
-        ) : null}
       </div>
 
       <DragOverlay>
@@ -658,26 +630,6 @@ const TierBoard = React.forwardRef<HTMLDivElement, Props>(function TierBoard(
 
         .betweenFilterAndPool {
           height: 0;
-        }
-
-        .loadMoreWrap {
-          margin-top: 8px;
-          display: flex;
-          justify-content: center;
-        }
-
-        .loadMoreBtn {
-          border: 1px solid #1f2937;
-          background: #f3f4f6;
-          color: #111827;
-          border-radius: 10px;
-          padding: 6px 12px;
-          font-weight: 700;
-          cursor: pointer;
-        }
-
-        .loadMoreBtn:hover {
-          background: #e5e7eb;
         }
 
         @media (max-width: 768px) {

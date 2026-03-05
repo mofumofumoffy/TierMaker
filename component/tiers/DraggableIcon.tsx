@@ -109,7 +109,7 @@ export default function DraggableIcon({ id, character }: Props) {
           border-radius: 0;
           border: 1px solid var(--border);
           background: rgba(255, 255, 255, 0.05);
-          overflow: hidden;
+          overflow: visible;
           display: grid;
           place-items: center;
         }
