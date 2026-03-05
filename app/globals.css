@@ -373,6 +373,7 @@ a {
 }
 
 .iconCard {
+  position: relative;
   width: 48px;
   height: 48px;
   border-radius: 0;
@@ -390,6 +391,26 @@ a {
   user-select: none;
   -webkit-user-drag: none;
   pointer-events: none;
+}
+
+.mobileNameHint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  transform: translateX(-50%);
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: rgba(17, 24, 39, 0.92);
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 11px;
+  line-height: 1.2;
+  z-index: 50;
+  pointer-events: none;
+  display: none;
 }
 
 .filterArea {
@@ -576,6 +597,10 @@ a {
 }
 
 @media (max-width: 768px) {
+  .mobileNameHint {
+    display: block;
+  }
+
   .poolBottomScrollbar {
     display: block;
   }
