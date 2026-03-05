@@ -686,6 +686,10 @@ a {
 }
 
 @media (max-width: 768px) {
+  .tierRow {
+    gap: 0;
+  }
+
   .mobileNameHint {
     display: block;
   }

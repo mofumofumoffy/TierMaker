@@ -276,6 +276,12 @@ export default function TierRow({
           min-height: 48px;
           align-content: flex-start;
         }
+
+        @media (max-width: 768px) {
+          .tierRow {
+            gap: 0;
+          }
+        }
       `}</style>
     </div>
   );
