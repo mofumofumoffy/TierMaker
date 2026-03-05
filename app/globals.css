@@ -596,6 +596,26 @@ a {
   height: 1px;
 }
 
+.loadMoreWrap {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.loadMoreBtn {
+  border: 1px solid #1f2937;
+  background: #f3f4f6;
+  color: #111827;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.loadMoreBtn:hover {
+  background: #e5e7eb;
+}
+
 @media (max-width: 768px) {
   .mobileNameHint {
     display: block;
